@@ -77,6 +77,7 @@ public class ShiroConfig {
 		shiroFilterFactoryBean.setUnauthorizedUrl("/403");
 		Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
 		//配置无需认证页面/url
+		filterChainDefinitionMap.put("/auth", "anon");
 		filterChainDefinitionMap.put("/install", "anon");
 		filterChainDefinitionMap.put("/doInstall", "anon");
 		filterChainDefinitionMap.put("/login", "anon");

@@ -1,6 +1,7 @@
 package com.perfree.controller;
 
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
@@ -10,6 +11,7 @@ import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,72 +21,87 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.perfree.common.AjaxResult;
 import com.perfree.entity.User;
 
+import java.util.Map;
+
 /**
  * 系统处理controller,主要处理登录等系统级别的逻辑
- * @author Perfree
  *
+ * @author Perfree
  */
 @Controller
 public class SystemController {
-	
-	private static Logger logger = Logger.getLogger(SystemController.class);
 
-	/**
-	 * 登录页
-	 * @return String
-	 */
-	@RequestMapping("/login")
-	public String login() {
-		return "login";
-	}
-	
-	@RequestMapping("/error/{status}")
-	public String error(@PathVariable String status) {
-		return status;
-	}
-	
-	/**
-	 * 登录操作
-	 * @param user
-	 * @return AjaxResult
-	 */
-	@ResponseBody
-	@RequestMapping(method=RequestMethod.POST,path="/doLogin")
-	public AjaxResult doLogin(User user, Boolean rememberMe, HttpSession session) {
-		AjaxResult result = null;
-		if(rememberMe == null) {
+    private static Logger logger = Logger.getLogger(SystemController.class);
+
+    /**
+     * 登录页
+     *
+     * @return String
+     */
+    @RequestMapping("/login")
+    public String login() {
+        return "login";
+    }
+
+    /**
+     * 下载文件进行通用认证
+     * @return 成功或者失败
+     */
+    @RequestMapping("/auth")
+    @ResponseBody
+    public String auth(String auth_token, HttpServletRequest request) {
+        return "ok";
+    }
+
+    @RequestMapping("/error/{status}")
+    public String error(@PathVariable String status) {
+        return status;
+    }
+
+    /**
+     * 登录操作
+     *
+     * @param user
+     * @return AjaxResult
+     */
+    @ResponseBody
+    @RequestMapping(method = RequestMethod.POST, path = "/doLogin")
+    public AjaxResult doLogin(User user, Boolean rememberMe, HttpSession session) {
+        AjaxResult result = null;
+        if (rememberMe == null) {
             rememberMe = false;
         }
-		try {
-			UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(user.getAccount(),user.getPassword(),rememberMe);
-			Subject subject = SecurityUtils.getSubject();
-			subject.login(usernamePasswordToken);
-			result = new AjaxResult(AjaxResult.AJAX_SUCCESS);
-			logger.info(user.getAccount()+" >>>login");
-		}catch (IncorrectCredentialsException e) {
-			logger.info(user.getAccount()+e.getMessage());
-			result = new AjaxResult(AjaxResult.AJAX_ERROR,"密码错误");
-		}catch (UnknownAccountException e) {
-			logger.info(user.getAccount()+e.getMessage());
-			result = new AjaxResult(AjaxResult.AJAX_ERROR,"用户不存在");
-		}catch (Exception e) {
-			logger.error(user.getAccount()+e.getMessage());
-			result = new AjaxResult(AjaxResult.AJAX_ERROR,"系统异常");
-		}
-		return result;
-	}
-	
-	/**
-	 * 登出
-	 * @return String
-	 */
-	@RequestMapping(path="/logout",method=RequestMethod.GET)
-	public String logout() {
-		Subject subject = SecurityUtils.getSubject();
-        User user=new User();
+        try {
+            UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(user.getAccount(), user.getPassword(), rememberMe);
+            Subject subject = SecurityUtils.getSubject();
+            subject.login(usernamePasswordToken);
+            result = new AjaxResult(AjaxResult.AJAX_SUCCESS);
+            logger.info(user.getAccount() + " >>>login");
+        } catch (IncorrectCredentialsException e) {
+            logger.info(user.getAccount() + e.getMessage());
+            result = new AjaxResult(AjaxResult.AJAX_ERROR, "密码错误");
+        } catch (UnknownAccountException e) {
+            logger.info(user.getAccount() + e.getMessage());
+            result = new AjaxResult(AjaxResult.AJAX_ERROR, "用户不存在");
+        } catch (Exception e) {
+            logger.error(user.getAccount() + e.getMessage());
+            result = new AjaxResult(AjaxResult.AJAX_ERROR, "系统异常");
+        }
+        return result;
+    }
+
+    /**
+     * 登出
+     *
+     * @return String
+     */
+    @RequestMapping(path = "/logout", method = RequestMethod.GET)
+    public String logout() {
+        Subject subject = SecurityUtils.getSubject();
+        User user = new User();
         BeanUtils.copyProperties(subject.getPrincipals().getPrimaryPrincipal(), user);
-        logger.info(user.getAccount()+" >>>logout");
+        logger.info(user.getAccount() + " >>>logout");
         subject.logout();
-		return "redirect:/login";
-	}
+        return "redirect:/login";
+    }
 }
